@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Avia Server Backend Editor</title>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600&family=Google+Sans+Display:wght@400;500;600&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+<style>
+  :root {
+    --md-sys-color-primary: #D0BCFF;
+    --md-sys-color-on-primary: #381E72;
+    --md-sys-color-primary-container: #4F378B;
+    --md-sys-color-on-primary-container: #EADDFF;
+    --md-sys-color-secondary: #CCC2DC;
+    --md-sys-color-on-secondary: #332D41;
+    --md-sys-color-secondary-container: #4A4458;
+    --md-sys-color-on-secondary-container: #E8DEF8;
+    --md-sys-color-error: #F2B8B5;
+    --md-sys-color-on-error: #601410;
+    --md-sys-color-error-container: #8C1D18;
+    --md-sys-color-on-error-container: #F9DEDC;
+    --md-sys-color-background: #141218;
+    --md-sys-color-on-background: #E6E0E9;
+    --md-sys-color-surface: #141218;
+    --md-sys-color-on-surface: #E6E0E9;
+    --md-sys-color-surface-variant: #49454F;
+    --md-sys-color-on-surface-variant: #CAC4D0;
+    --md-sys-color-outline: #938F99;
+    --md-sys-color-outline-variant: #49454F;
+    --md-sys-color-surface-container-lowest: #0F0D13;
+    --md-sys-color-surface-container-low: #1D1B20;
+    --md-sys-color-surface-container: #211F26;
+    --md-sys-color-surface-container-high: #2B2930;
+    --md-sys-color-surface-container-highest: #36343B;
+    --md-sys-color-inverse-surface: #E6E0E9;
+    --md-sys-color-inverse-on-surface: #322F37;
+    --md-sys-color-inverse-primary: #6750A4;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Google Sans', sans-serif;
+    background: var(--md-sys-color-background);
+    color: var(--md-sys-color-on-background);
+    min-height: 100vh;
+  }
+
+  .top-bar {
+    background: var(--md-sys-color-surface-container);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 16px;
+    height: 64px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    border-bottom: 1px solid var(--md-sys-color-outline-variant);
+  }
+  .top-bar .material-icons-round { color: var(--md-sys-color-on-surface-variant); font-size: 24px; }
+  .top-bar h1 {
+    font-family: 'Google Sans Display', sans-serif;
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--md-sys-color-on-surface);
+    flex: 1;
+  }
+  .top-bar .badge {
+    background: var(--md-sys-color-primary-container);
+    color: var(--md-sys-color-on-primary-container);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+  }
+
+  .layout {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 24px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .card {
+    background: var(--md-sys-color-surface-container-low);
+    border-radius: 16px;
+    padding: 20px;
+    border: 1px solid var(--md-sys-color-outline-variant);
+  }
+  .card-title {
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--md-sys-color-primary);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card-title .material-icons-round { font-size: 18px; }
+
+  .url-row {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .url-input-wrap {
+    flex: 1;
+    min-width: 200px;
+    position: relative;
+  }
+  .url-input-wrap .material-icons-round {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--md-sys-color-on-surface-variant);
+    font-size: 20px;
+    pointer-events: none;
+  }
+  .field {
+    width: 100%;
+    background: var(--md-sys-color-surface-container-highest);
+    border: 1px solid var(--md-sys-color-outline);
+    border-radius: 12px;
+    color: var(--md-sys-color-on-surface);
+    font-family: 'Google Sans', sans-serif;
+    font-size: 14px;
+    padding: 14px 14px 14px 44px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .field:focus { border-color: var(--md-sys-color-primary); }
+  .field::placeholder { color: var(--md-sys-color-on-surface-variant); }
+
+  .preset-chips {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+    align-items: center;
+  }
+  .chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--md-sys-color-surface-container-highest);
+    border: 1px solid var(--md-sys-color-outline-variant);
+    border-radius: 20px;
+    padding: 6px 14px 6px 10px;
+    font-size: 13px;
+    color: var(--md-sys-color-on-surface-variant);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .chip:hover {
+    background: var(--md-sys-color-secondary-container);
+    color: var(--md-sys-color-on-secondary-container);
+    border-color: var(--md-sys-color-secondary-container);
+  }
+  .chip .material-icons-round { font-size: 16px; }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: none;
+    border-radius: 20px;
+    font-family: 'Google Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 10px 20px;
+    transition: all 0.2s;
+    white-space: nowrap;
+    letter-spacing: 0.1px;
+  }
+  .btn .material-icons-round { font-size: 18px; }
+  .btn-filled {
+    background: var(--md-sys-color-primary);
+    color: var(--md-sys-color-on-primary);
+  }
+  .btn-filled:hover { filter: brightness(1.1); box-shadow: 0 2px 8px rgba(208,188,255,0.3); }
+  .btn-tonal {
+    background: var(--md-sys-color-secondary-container);
+    color: var(--md-sys-color-on-secondary-container);
+  }
+  .btn-tonal:hover { filter: brightness(1.1); }
+  .btn-outlined {
+    background: transparent;
+    border: 1px solid var(--md-sys-color-outline);
+    color: var(--md-sys-color-primary);
+  }
+  .btn-outlined:hover { background: rgba(208,188,255,0.08); }
+  .btn-error {
+    background: var(--md-sys-color-error-container);
+    color: var(--md-sys-color-on-error-container);
+  }
+  .btn-error:hover { filter: brightness(1.2); }
+  .btn:disabled { opacity: 0.38; cursor: not-allowed; }
+
+  .toolbar {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .search-wrap {
+    flex: 1;
+    min-width: 200px;
+    position: relative;
+  }
+  .search-wrap .material-icons-round {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--md-sys-color-on-surface-variant);
+    font-size: 20px;
+    pointer-events: none;
+  }
+  #searchInput {
+    background: var(--md-sys-color-surface-container-highest);
+    border: 1px solid var(--md-sys-color-outline);
+    border-radius: 28px;
+    color: var(--md-sys-color-on-surface);
+    font-family: 'Google Sans', sans-serif;
+    font-size: 15px;
+    padding: 12px 16px 12px 46px;
+    outline: none;
+    width: 100%;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  #searchInput:focus {
+    border-color: var(--md-sys-color-primary);
+    box-shadow: 0 0 0 3px rgba(208,188,255,0.15);
+  }
+  #searchInput::placeholder { color: var(--md-sys-color-on-surface-variant); }
+
+  .count-label {
+    font-size: 13px;
+    color: var(--md-sys-color-on-surface-variant);
+    white-space: nowrap;
+  }
+
+  #serverList {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .server-card {
+    background: var(--md-sys-color-surface-container);
+    border: 1px solid var(--md-sys-color-outline-variant);
+    border-radius: 16px;
+    overflow: hidden;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    animation: slideIn 0.2s ease;
+  }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(-8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .server-card:hover { border-color: var(--md-sys-color-outline); box-shadow: 0 2px 12px rgba(0,0,0,0.3); }
+  .server-card.editing { border-color: var(--md-sys-color-primary); }
+
+  .server-header {
+    display: flex;
+    align-items: center;
+    padding: 14px 16px;
+    gap: 12px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .server-meta { flex: 1; overflow: hidden; }
+  .server-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--md-sys-color-on-surface);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .server-invite-label {
+    font-size: 12px;
+    color: var(--md-sys-color-on-surface-variant);
+    margin-top: 2px;
+    font-family: 'Roboto Mono', monospace;
+  }
+  .server-actions { display: flex; gap: 4px; align-items: center; }
+  .icon-btn {
+    background: none;
+    border: none;
+    border-radius: 50%;
+    width: 36px; height: 36px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    color: var(--md-sys-color-on-surface-variant);
+    transition: background 0.15s, color 0.15s;
+  }
+  .icon-btn:hover { background: rgba(255,255,255,0.08); color: var(--md-sys-color-on-surface); }
+  .icon-btn.delete:hover { background: rgba(242,184,181,0.12); color: var(--md-sys-color-error); }
+  .icon-btn .material-icons-round { font-size: 20px; }
+  .expand-arrow {
+    transition: transform 0.2s;
+    color: var(--md-sys-color-on-surface-variant);
+  }
+  .expand-arrow.open { transform: rotate(180deg); }
+
+  .server-body {
+    display: none;
+    padding: 0 16px 16px;
+    flex-direction: column;
+    gap: 12px;
+    border-top: 1px solid var(--md-sys-color-outline-variant);
+  }
+  .server-body.open { display: flex; }
+
+  .field-group { display: flex; flex-direction: column; gap: 4px; }
+  .field-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--md-sys-color-on-surface-variant);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-top: 4px;
+  }
+  .field-hint {
+    font-size: 11px;
+    color: var(--md-sys-color-on-surface-variant);
+    margin-top: 3px;
+  }
+  .inline-field {
+    width: 100%;
+    background: var(--md-sys-color-surface-container-high);
+    border: 1px solid var(--md-sys-color-outline-variant);
+    border-radius: 10px;
+    color: var(--md-sys-color-on-surface);
+    font-family: 'Google Sans', sans-serif;
+    font-size: 14px;
+    padding: 10px 14px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .inline-field:focus { border-color: var(--md-sys-color-primary); }
+  .inline-field.mono { font-family: 'Roboto Mono', monospace; font-size: 13px; }
+
+  .tag-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 6px;
+    min-height: 24px;
+  }
+  .tag-pill {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--md-sys-color-secondary-container);
+    color: var(--md-sys-color-on-secondary-container);
+    border-radius: 20px;
+    padding: 3px 10px 3px 10px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  #snackbar {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--md-sys-color-inverse-surface);
+    color: var(--md-sys-color-inverse-on-surface);
+    border-radius: 8px;
+    padding: 14px 20px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    z-index: 999;
+    transition: transform 0.3s cubic-bezier(0.2, 0, 0, 1);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    white-space: nowrap;
+  }
+  #snackbar.show { transform: translateX(-50%) translateY(0); }
+  #snackbar .material-icons-round { font-size: 20px; color: var(--md-sys-color-primary); }
+
+  .empty-state {
+    text-align: center;
+    padding: 48px 24px;
+    color: var(--md-sys-color-on-surface-variant);
+    display: none;
+  }
+  .empty-state .material-icons-round { font-size: 48px; margin-bottom: 12px; opacity: 0.5; }
+  .empty-state p { font-size: 15px; }
+
+  .spinner {
+    width: 20px; height: 20px;
+    border: 2px solid rgba(208,188,255,0.3);
+    border-top-color: var(--md-sys-color-primary);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: none;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .highlight { background: rgba(208,188,255,0.2); border-radius: 3px; }
+
+  .paste-area {
+    width: 100%;
+    background: var(--md-sys-color-surface-container-highest);
+    border: 1px solid var(--md-sys-color-outline);
+    border-radius: 12px;
+    color: var(--md-sys-color-on-surface);
+    font-family: 'Roboto Mono', monospace;
+    font-size: 12px;
+    padding: 12px 14px;
+    outline: none;
+    resize: vertical;
+    min-height: 100px;
+    transition: border-color 0.2s;
+    line-height: 1.5;
+  }
+  .paste-area:focus { border-color: var(--md-sys-color-primary); }
+  .paste-area::placeholder { color: var(--md-sys-color-on-surface-variant); font-family: 'Google Sans', sans-serif; font-size: 13px; }
+
+  .method-tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 16px;
+  }
+  .method-tab {
+    flex: 1;
+    padding: 8px;
+    border-radius: 10px;
+    border: 1px solid var(--md-sys-color-outline-variant);
+    background: transparent;
+    color: var(--md-sys-color-on-surface-variant);
+    font-family: 'Google Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all 0.15s;
+  }
+  .method-tab .material-icons-round { font-size: 16px; }
+  .method-tab.active {
+    background: var(--md-sys-color-primary-container);
+    color: var(--md-sys-color-on-primary-container);
+    border-color: var(--md-sys-color-primary-container);
+  }
+  .method-panel { display: none; }
+  .method-panel.active { display: block; }
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <span class="material-icons-round">dns</span>
+  <h1>Server Backend Editor</h1>
+  <span class="badge" id="serverCount">0 servers</span>
+</div>
+
+<div class="layout">
+
+  <div class="card">
+    <div class="card-title">
+      <span class="material-icons-round">cloud_download</span>
+      Load Backend
+    </div>
+
+    <div class="method-tabs">
+      <button class="method-tab active" id="tab-url" onclick="switchMethod('url')">
+        <span class="material-icons-round">link</span>
+        Load from URL
+      </button>
+      <button class="method-tab" id="tab-paste" onclick="switchMethod('paste')">
+        <span class="material-icons-round">content_paste</span>
+        Paste JSON
+      </button>
+    </div>
+
+    <div class="method-panel active" id="panel-url">
+      <div class="url-row">
+        <div class="url-input-wrap">
+          <span class="material-icons-round">link</span>
+          <input class="field" id="urlInput" type="text"
+            placeholder="Paste GitHub or Codeberg file URL...">
+        </div>
+        <div class="spinner" id="spinner"></div>
+        <button class="btn btn-filled" onclick="loadFromURL()">
+          <span class="material-icons-round">download</span>
+          Load URL
+        </button>
+      </div>
+      <div class="preset-chips">
+        <span style="font-size:12px; color:var(--md-sys-color-on-surface-variant);">
+          GitHub &amp; Codeberg URLs both work (blob, raw, or API)
+        </span>
+      </div>
+    </div>
+
+    <div class="method-panel" id="panel-paste">
+      <textarea class="paste-area" id="pasteInput" rows="6"
+        placeholder='Paste your backend JSON here, e.g. {"servers":[]}'></textarea>
+      <div style="margin-top:10px; display:flex; gap:10px;">
+        <button class="btn btn-filled" onclick="loadFromPaste()">
+          <span class="material-icons-round">upload</span>
+          Load JSON
+        </button>
+        <button class="btn btn-outlined" onclick="document.getElementById('pasteInput').value=''">
+          <span class="material-icons-round">clear</span>
+          Clear
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex; flex-direction:column; gap:12px;">
+    <div class="toolbar">
+      <div class="search-wrap">
+        <span class="material-icons-round">search</span>
+        <input id="searchInput" type="text" placeholder="Search servers by name, invite, tags, or description..." oninput="applySearch()">
+      </div>
+      <span class="count-label" id="filterCount"></span>
+    </div>
+    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+      <button class="btn btn-tonal" onclick="addServer()">
+        <span class="material-icons-round">add</span>
+        Add Server
+      </button>
+      <button class="btn btn-error" onclick="deleteAll()">
+        <span class="material-icons-round">delete_sweep</span>
+        Delete All
+      </button>
+      <button class="btn btn-outlined" onclick="copyToClipboard()">
+        <span class="material-icons-round">content_copy</span>
+        Copy JSON
+      </button>
+      <button class="btn btn-outlined" onclick="expandAll()">
+        <span class="material-icons-round">unfold_more</span>
+        Expand All
+      </button>
+      <button class="btn btn-outlined" onclick="collapseAll()">
+        <span class="material-icons-round">unfold_less</span>
+        Collapse All
+      </button>
+    </div>
+  </div>
+
+  <div id="serverList"></div>
+  <div class="empty-state" id="emptyState">
+    <div class="material-icons-round">dns</div>
+    <p id="emptyMsg">Load a backend URL above to get started, or add servers manually.</p>
+  </div>
+
+</div>
+
+<div id="snackbar">
+  <span class="material-icons-round">check_circle</span>
+  <span id="snackMsg">Done!</span>
+</div>
+
+<script>
+let servers = [];
+let searchQuery = '';
+let snackTimer = null;
+
+const INVITE_BASE = 'https://stt.gg/';
+
+function parseInviteCode(raw) {
+  raw = (raw || '').trim();
+  if (!raw) return '';
+  try {
+    const u = new URL(raw);
+    const parts = u.pathname.replace(/^\/|\/$/g, '').split('/');
+    return parts[parts.length - 1] || raw;
+  } catch {
+    return raw;
+  }
+}
+
+function tagsFromString(str) {
+  return (str || '').match(/#([^\s#]+)/g)?.map(t => t.slice(1)) || [];
+}
+
+function tagsToString(arr) {
+  return (arr || []).map(t => '#' + t).join(' ');
+}
+
+function switchMethod(method) {
+  document.getElementById('tab-url').classList.toggle('active', method === 'url');
+  document.getElementById('tab-paste').classList.toggle('active', method === 'paste');
+  document.getElementById('panel-url').classList.toggle('active', method === 'url');
+  document.getElementById('panel-paste').classList.toggle('active', method === 'paste');
+}
+
+function loadFromPaste() {
+  const raw = document.getElementById('pasteInput').value.trim();
+  if (!raw) { showSnack('Nothing pasted yet', 'error'); return; }
+  try {
+    const json = JSON.parse(raw);
+    if (!json.servers || !Array.isArray(json.servers)) throw new Error('No "servers" array found');
+    servers = json.servers;
+    renderAll();
+    showSnack(`Loaded ${servers.length} servers from JSON`);
+  } catch (e) {
+    showSnack('Invalid JSON: ' + e.message, 'error');
+  }
+}
+
+function parseFileUrl(raw) {
+  try {
+    if (!/^https?:\/\//i.test(raw)) raw = 'https://' + raw;
+    const u = new URL(raw);
+    const host = u.hostname.replace(/^www\./, '');
+    const parts = u.pathname.replace(/^\/|\/$/g, '').split('/');
+
+    if (host === 'raw.githubusercontent.com') {
+      const owner = parts[0], repo = parts[1];
+      let branch, pathParts;
+      if (parts[2] === 'refs' && parts[3] === 'heads') {
+        branch = parts[4];
+        pathParts = parts.slice(5);
+      } else {
+        branch = parts[2];
+        pathParts = parts.slice(3);
+      }
+      return { platform: 'github', owner, repo, branch, path: pathParts.join('/') };
+    }
+    if (host === 'github.com') {
+      if (parts.length >= 5 && (parts[2] === 'blob' || parts[2] === 'raw')) {
+        const owner = parts[0], repo = parts[1];
+        let branch, pathParts;
+        if (parts[4] === 'refs' && parts[5] === 'heads') {
+          branch = parts[6];
+          pathParts = parts.slice(7);
+        } else {
+          branch = parts[3];
+          pathParts = parts.slice(4);
+        }
+        return { platform: 'github', owner, repo, branch, path: pathParts.join('/') };
+      }
+    }
+    if (host === 'api.github.com' && parts[0] === 'repos') {
+      const owner = parts[1], repo = parts[2];
+      const pathParts = parts.slice(4);
+      const branch = u.searchParams.get('ref') || 'main';
+      return { platform: 'github', owner, repo, branch, path: pathParts.join('/') };
+    }
+    if (host === 'codeberg.org') {
+      if (parts[0] === 'api' && parts[1] === 'v1' && parts[2] === 'repos') {
+        const owner = parts[3], repo = parts[4];
+        const pathParts = parts.slice(6);
+        const branch = u.searchParams.get('ref') || 'main';
+        return { platform: 'codeberg', owner, repo, branch, path: pathParts.join('/') };
+      }
+      if (parts.length >= 6 && (parts[2] === 'src' || parts[2] === 'raw') && parts[3] === 'branch') {
+        const [owner, repo, , , branch, ...pathParts] = parts;
+        return { platform: 'codeberg', owner, repo, branch, path: pathParts.join('/') };
+      }
+    }
+  } catch (e) {}
+  return null;
+}
+
+async function fetchFileText(info) {
+  let apiUrl;
+  if (info.platform === 'github') {
+    apiUrl = `https://api.github.com/repos/${info.owner}/${info.repo}/contents/${info.path}?ref=${info.branch}`;
+  } else {
+    apiUrl = `https://codeberg.org/api/v1/repos/${info.owner}/${info.repo}/contents/${info.path}?ref=${info.branch}&limit=1`;
+  }
+
+  const headers = {
+    'Accept': info.platform === 'github' ? 'application/vnd.github.v3+json' : 'application/json'
+  };
+
+  const res = await fetch(apiUrl, { headers });
+
+  if (!res.ok) {
+    if (res.status === 403 || res.status === 429)
+      throw new Error(`Rate-limited by ${info.platform} API — try again in a moment`);
+    if (res.status === 404)
+      throw new Error('File not found — check the URL and branch name');
+    throw new Error(`API error ${res.status}`);
+  }
+
+  const json = await res.json();
+
+  if (json.content) {
+    const b64 = json.content.replace(/\s/g, '');
+    return decodeURIComponent(escape(atob(b64)));
+  }
+
+  if (json.download_url) {
+    const r2 = await fetch(json.download_url);
+    if (!r2.ok) throw new Error(`Download failed: HTTP ${r2.status}`);
+    return r2.text();
+  }
+
+  throw new Error('API response contained no file content');
+}
+
+async function loadFromURL() {
+  let raw = document.getElementById('urlInput').value.trim();
+  if (!raw) { showSnack('Please enter a URL', 'error'); return; }
+
+  const spinner = document.getElementById('spinner');
+  spinner.style.display = 'block';
+
+  try {
+    const info = parseFileUrl(raw);
+    let text;
+    if (info) {
+      text = await fetchFileText(info);
+    } else {
+      if (!/^https?:\/\//i.test(raw)) raw = 'https://' + raw;
+      const res = await fetch(raw);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      text = await res.text();
+    }
+
+    let json;
+    try {
+      json = JSON.parse(text);
+    } catch {
+      const match = text.match(/\{[\s\S]*\}/);
+      if (match) json = JSON.parse(match[0]);
+      else throw new Error('Could not parse JSON from the file');
+    }
+
+    if (!json.servers || !Array.isArray(json.servers))
+      throw new Error('No "servers" array found in file');
+
+    servers = json.servers;
+    renderAll();
+    showSnack(`Loaded ${servers.length} servers successfully`);
+  } catch (e) {
+    showSnack('Failed to load: ' + e.message, 'error');
+    console.error(e);
+  } finally {
+    spinner.style.display = 'none';
+  }
+}
+
+function renderAll() {
+  const q = searchQuery.toLowerCase();
+  const list = document.getElementById('serverList');
+  const empty = document.getElementById('emptyState');
+  list.innerHTML = '';
+
+  const filtered = servers.filter(s => {
+    if (!q) return true;
+    return (s.name || '').toLowerCase().includes(q)
+        || (s.invite || '').toLowerCase().includes(q)
+        || (s.description || '').toLowerCase().includes(q)
+        || (s.tags || []).some(t => t.toLowerCase().includes(q));
+  });
+
+  updateCounts(filtered.length);
+
+  if (filtered.length === 0) {
+    empty.style.display = 'block';
+    document.getElementById('emptyMsg').textContent =
+      servers.length === 0
+        ? 'Load a backend URL above to get started, or add servers manually.'
+        : 'No servers match your search.';
+    return;
+  }
+
+  empty.style.display = 'none';
+  filtered.forEach(server => {
+    const realIdx = servers.indexOf(server);
+    list.appendChild(buildCard(server, realIdx));
+  });
+}
+
+function hl(text, q) {
+  if (!q || !text) return escHtml(text || '');
+  const re = new RegExp('(' + q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+  return escHtml(text).replace(re, '<mark class="highlight">$1</mark>');
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function buildTagPillsHtml(tags) {
+  if (!tags || tags.length === 0) return '';
+  return tags.map(t => `<span class="tag-pill">${escHtml(t)}</span>`).join('');
+}
+
+function buildCard(server, idx) {
+  const q = searchQuery.toLowerCase();
+  const card = document.createElement('div');
+  card.className = 'server-card';
+  card.id = 'card-' + idx;
+
+  const inviteCode = server.invite || '';
+  const tagStr = tagsToString(server.tags);
+
+  card.innerHTML = `
+    <div class="server-header" onclick="toggleCard(${idx})">
+      <div class="server-meta">
+        <div class="server-name">${hl(server.name || '(no name)', q)}</div>
+        <div class="server-invite-label">${hl(inviteCode ? INVITE_BASE + inviteCode : 'No invite set', q)}</div>
+      </div>
+      <div class="server-actions" onclick="event.stopPropagation()">
+        <button class="icon-btn" title="Move up" onclick="moveServer(${idx}, -1)">
+          <span class="material-icons-round">arrow_upward</span>
+        </button>
+        <button class="icon-btn" title="Move down" onclick="moveServer(${idx}, 1)">
+          <span class="material-icons-round">arrow_downward</span>
+        </button>
+        <button class="icon-btn delete" title="Delete server" onclick="deleteServer(${idx})">
+          <span class="material-icons-round">delete</span>
+        </button>
+      </div>
+      <span class="material-icons-round expand-arrow" id="arrow-${idx}">expand_more</span>
+    </div>
+    <div class="server-body" id="body-${idx}">
+      <div class="field-group">
+        <div class="field-label">Name</div>
+        <input class="inline-field" value="${escHtml(server.name || '')}" oninput="updateField(${idx},'name',this.value)">
+      </div>
+      <div class="field-group">
+        <div class="field-label">Invite</div>
+        <input class="inline-field mono" id="invite-${idx}" value="${escHtml(inviteCode)}" placeholder="invitecode or https://stt.gg/invitecode" oninput="updateInviteField(${idx}, this.value)">
+        <div class="field-hint" id="invite-hint-${idx}">${inviteCode ? 'Will join as: ' + INVITE_BASE + inviteCode : 'Enter an invite code or full link'}</div>
+      </div>
+      <div class="field-group">
+        <div class="field-label">Description</div>
+        <input class="inline-field" value="${escHtml(server.description || '')}" oninput="updateField(${idx},'description',this.value)">
+      </div>
+      <div class="field-group">
+        <div class="field-label">Tags</div>
+        <input class="inline-field" id="tags-${idx}" value="${escHtml(tagStr)}" placeholder="#tag1 #tag2 #tag3" oninput="updateTagsField(${idx}, this.value)">
+        <div class="field-hint">Space-separated hashtags. They'll be saved as a plain array in the JSON.</div>
+        <div class="tag-pills" id="tagpills-${idx}">${buildTagPillsHtml(server.tags)}</div>
+      </div>
+    </div>
+  `;
+  return card;
+}
+
+function toggleCard(idx) {
+  const body  = document.getElementById('body-' + idx);
+  const arrow = document.getElementById('arrow-' + idx);
+  const card  = document.getElementById('card-' + idx);
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  arrow.classList.toggle('open', !isOpen);
+  card.classList.toggle('editing', !isOpen);
+}
+
+function expandAll() {
+  document.querySelectorAll('.server-body').forEach(b => b.classList.add('open'));
+  document.querySelectorAll('.expand-arrow').forEach(a => a.classList.add('open'));
+  document.querySelectorAll('.server-card').forEach(c => c.classList.add('editing'));
+}
+function collapseAll() {
+  document.querySelectorAll('.server-body').forEach(b => b.classList.remove('open'));
+  document.querySelectorAll('.expand-arrow').forEach(a => a.classList.remove('open'));
+  document.querySelectorAll('.server-card').forEach(c => c.classList.remove('editing'));
+}
+
+function updateField(idx, key, value) {
+  servers[idx][key] = value;
+  const card = document.getElementById('card-' + idx);
+  if (card) {
+    const nm = card.querySelector('.server-name');
+    if (nm) nm.innerHTML = hl(servers[idx].name || '(no name)', searchQuery.toLowerCase());
+  }
+}
+
+function updateInviteField(idx, value) {
+  const code = parseInviteCode(value);
+  servers[idx].invite = code;
+  const hint = document.getElementById('invite-hint-' + idx);
+  const label = document.getElementById('card-' + idx)?.querySelector('.server-invite-label');
+  if (hint) hint.textContent = code ? 'Will join as: ' + INVITE_BASE + code : 'Enter an invite code or full link';
+  if (label) label.innerHTML = hl(code ? INVITE_BASE + code : 'No invite set', searchQuery.toLowerCase());
+}
+
+function updateTagsField(idx, value) {
+  const tags = tagsFromString(value);
+  servers[idx].tags = tags;
+  const pills = document.getElementById('tagpills-' + idx);
+  if (pills) pills.innerHTML = buildTagPillsHtml(tags);
+}
+
+function addServer() {
+  servers.push({ invite: '', name: '', description: '', tags: [] });
+  renderAll();
+  const newIdx = servers.length - 1;
+  setTimeout(() => {
+    toggleCard(newIdx);
+    document.getElementById('card-' + newIdx)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, 50);
+  updateCounts(servers.length);
+}
+
+function deleteServer(idx) {
+  const name = servers[idx].name || 'this server';
+  if (!confirm(`Delete "${name}"?`)) return;
+  servers.splice(idx, 1);
+  renderAll();
+  showSnack(`Deleted "${name}"`);
+}
+
+function moveServer(idx, dir) {
+  const newIdx = idx + dir;
+  if (newIdx < 0 || newIdx >= servers.length) return;
+  [servers[idx], servers[newIdx]] = [servers[newIdx], servers[idx]];
+  renderAll();
+}
+
+function applySearch() {
+  searchQuery = document.getElementById('searchInput').value;
+  renderAll();
+}
+
+function updateCounts(filtered) {
+  const total = servers.length;
+  document.getElementById('serverCount').textContent = total === 1 ? '1 server' : total + ' servers';
+  const fc = document.getElementById('filterCount');
+  if (searchQuery && filtered !== total) {
+    fc.textContent = `Showing ${filtered} of ${total}`;
+  } else {
+    fc.textContent = total > 0 ? `${total} servers loaded` : '';
+  }
+}
+
+function deleteAll() {
+  if (servers.length === 0) { showSnack('No servers to delete', 'error'); return; }
+  if (!confirm(`Delete all ${servers.length} servers?`)) return;
+  servers = [];
+  renderAll();
+  showSnack('All servers deleted');
+}
+
+function generateJSON() {
+  const out = servers.map(s => {
+    const obj = {};
+    if (s.invite)      obj.invite      = s.invite;
+    if (s.name)        obj.name        = s.name;
+    if (s.description) obj.description = s.description;
+    if (s.tags && s.tags.length) obj.tags = s.tags;
+    return obj;
+  });
+  return JSON.stringify({ servers: out }, null, 2);
+}
+
+async function copyToClipboard() {
+  const json = generateJSON();
+  try {
+    await navigator.clipboard.writeText(json);
+    showSnack('JSON copied to clipboard!');
+  } catch {
+    const ta = document.createElement('textarea');
+    ta.value = json;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    showSnack('JSON copied to clipboard!');
+  }
+}
+
+function showSnack(msg, type) {
+  const snack = document.getElementById('snackbar');
+  const icon  = snack.querySelector('.material-icons-round');
+  document.getElementById('snackMsg').textContent = msg;
+  icon.textContent = type === 'error' ? 'error' : 'check_circle';
+  icon.style.color = type === 'error'
+    ? 'var(--md-sys-color-error)'
+    : 'var(--md-sys-color-primary)';
+  snack.classList.add('show');
+  clearTimeout(snackTimer);
+  snackTimer = setTimeout(() => snack.classList.remove('show'), 3000);
+}
+
+renderAll();
+</script>
+</body>
+</html>

@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Avia Client Server Discovery</title>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600&family=Google+Sans+Display:wght@400;500&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --md-primary: #6750A4;
+    --md-on-primary: #FFFFFF;
+    --md-primary-container: #EADDFF;
+    --md-on-primary-container: #21005D;
+    --md-secondary: #625B71;
+    --md-secondary-container: #E8DEF8;
+    --md-surface: #FFFBFE;
+    --md-surface-variant: #E7E0EC;
+    --md-surface-container: #F3EDF7;
+    --md-surface-container-high: #ECE6F0;
+    --md-surface-container-highest: #E6E0E9;
+    --md-on-surface: #1C1B1F;
+    --md-on-surface-variant: #49454F;
+    --md-outline: #79747E;
+    --md-outline-variant: #CAC4D0;
+    --md-shadow: rgba(0,0,0,0.08);
+    --md-state-hover: rgba(103,80,164,0.08);
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --radius-full: 100px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --md-primary: #D0BCFF;
+      --md-on-primary: #381E72;
+      --md-primary-container: #4F378B;
+      --md-on-primary-container: #EADDFF;
+      --md-secondary: #CCC2DC;
+      --md-secondary-container: #4A4458;
+      --md-surface: #141218;
+      --md-surface-variant: #49454F;
+      --md-surface-container: #1D1B20;
+      --md-surface-container-high: #2B2930;
+      --md-surface-container-highest: #36343B;
+      --md-on-surface: #E6E1E5;
+      --md-on-surface-variant: #CAC4D0;
+      --md-outline: #938F99;
+      --md-outline-variant: #49454F;
+      --md-shadow: rgba(0,0,0,0.3);
+      --md-state-hover: rgba(208,188,255,0.08);
+    }
+  }
+
+  html, body {
+    height: 100%;
+    font-family: 'Google Sans', system-ui, sans-serif;
+    background: var(--md-surface);
+    color: var(--md-on-surface);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .app-bar {
+    background: var(--md-surface-container);
+    border-bottom: 1px solid var(--md-outline-variant);
+    padding: 0 24px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .app-bar-icon { font-size: 24px; color: var(--md-primary); }
+  .app-bar-title {
+    font-family: 'Google Sans Display', sans-serif;
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--md-on-surface);
+    flex: 1;
+  }
+  .app-bar-subtitle {
+    font-size: 12px;
+    color: var(--md-on-surface-variant);
+    background: var(--md-surface-variant);
+    padding: 4px 12px;
+    border-radius: var(--radius-full);
+  }
+
+  .toolbar {
+    padding: 20px 24px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid var(--md-outline-variant);
+    background: var(--md-surface);
+    flex-wrap: wrap;
+  }
+  .search-field {
+    flex: 1;
+    max-width: 480px;
+    position: relative;
+  }
+  .search-field .material-symbols-outlined {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 20px;
+    color: var(--md-on-surface-variant);
+    pointer-events: none;
+  }
+  .search-field input {
+    width: 100%;
+    height: 48px;
+    border: 1px solid var(--md-outline);
+    border-radius: var(--radius-full);
+    background: var(--md-surface-container-high);
+    color: var(--md-on-surface);
+    font-family: 'Google Sans', sans-serif;
+    font-size: 14px;
+    padding: 0 20px 0 48px;
+    outline: none;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .search-field input:focus {
+    border-color: var(--md-primary);
+    background: var(--md-surface);
+  }
+  .search-field input::placeholder { color: var(--md-on-surface-variant); }
+
+  .toolbar-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+  .count-chip {
+    font-size: 12px;
+    color: var(--md-on-surface-variant);
+    padding: 6px 14px;
+    background: var(--md-surface-variant);
+    border-radius: var(--radius-full);
+  }
+  .icon-btn {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    color: var(--md-on-surface-variant);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .icon-btn:hover { background: var(--md-state-hover); }
+  .icon-btn .material-symbols-outlined { font-size: 22px; }
+
+  .sort-bar {
+    display: flex; align-items: center; gap: 6px;
+    width: 100%; padding-top: 4px;
+  }
+  .sort-label {
+    font-size: 12px; font-weight: 500;
+    color: var(--md-on-surface-variant);
+    white-space: nowrap; padding-right: 2px;
+  }
+  .sort-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+  .sort-chip {
+    height: 32px; padding: 0 14px;
+    border-radius: var(--radius-full);
+    border: 1px solid var(--md-outline-variant);
+    background: transparent;
+    color: var(--md-on-surface-variant);
+    font-family: 'Google Sans', sans-serif;
+    font-size: 13px; font-weight: 500;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 6px;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+    white-space: nowrap; user-select: none;
+  }
+  .sort-chip .material-symbols-outlined { font-size: 16px; }
+  .sort-chip:hover { background: var(--md-state-hover); border-color: var(--md-outline); }
+  .sort-chip.active {
+    background: var(--md-secondary-container);
+    color: var(--md-on-primary-container);
+    border-color: transparent;
+  }
+
+  .content { padding: 20px 24px; }
+
+  .server-grid {
+    columns: 340px;
+    column-gap: 12px;
+  }
+
+  .server-card {
+    background: var(--md-surface-container);
+    border: 1px solid var(--md-outline-variant);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: border-color 0.15s, background 0.15s;
+    break-inside: avoid;
+    margin-bottom: 12px;
+  }
+  .server-card:hover {
+    background: var(--md-surface-container-high);
+    border-color: var(--md-outline);
+  }
+
+  .card-body {
+    padding: 16px;
+    display: flex; flex-direction: column; gap: 10px; flex: 1;
+  }
+  .card-name {
+    font-size: 15px; font-weight: 600;
+    color: var(--md-on-surface);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .card-status {
+    font-size: 11px; color: var(--md-on-surface-variant);
+    display: flex; align-items: center; gap: 4px;
+  }
+  .card-status .material-symbols-outlined { font-size: 12px; }
+
+  .card-desc { font-size: 13px; color: var(--md-on-surface-variant); line-height: 1.55; }
+
+  .card-tags { display: flex; flex-wrap: wrap; gap: 5px; }
+  .tag {
+    font-size: 11px; font-weight: 500;
+    padding: 2px 10px; border-radius: var(--radius-full);
+    background: var(--md-secondary-container);
+    color: var(--md-on-primary-container);
+  }
+
+  .card-actions { display: flex; gap: 8px; align-items: center; margin-top: 4px; }
+
+  .btn-filled {
+    height: 36px; padding: 0 20px;
+    border-radius: var(--radius-full);
+    border: none;
+    background: var(--md-primary); color: var(--md-on-primary);
+    font-family: 'Google Sans', sans-serif;
+    font-size: 13px; font-weight: 500;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    flex: 1;
+    text-decoration: none;
+    transition: opacity 0.15s, box-shadow 0.15s;
+  }
+  .btn-filled:hover { box-shadow: 0 1px 6px var(--md-shadow); opacity: 0.92; }
+  .btn-filled .material-symbols-outlined { font-size: 16px; }
+
+  .btn-tonal {
+    height: 36px; padding: 0 16px;
+    border-radius: var(--radius-full);
+    border: none;
+    background: var(--md-secondary-container);
+    color: var(--md-on-primary-container);
+    font-family: 'Google Sans', sans-serif;
+    font-size: 13px; font-weight: 500;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 6px;
+    transition: opacity 0.15s;
+    flex-shrink: 0;
+  }
+  .btn-tonal:hover { opacity: 0.85; }
+  .btn-tonal .material-symbols-outlined { font-size: 16px; }
+
+  .loading-state, .error-state, .empty-state {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 80px 24px;
+    color: var(--md-on-surface-variant);
+    gap: 16px; text-align: center;
+  }
+  .loading-state .material-symbols-outlined,
+  .error-state .material-symbols-outlined,
+  .empty-state .material-symbols-outlined { font-size: 48px; opacity: 0.5; }
+  .loading-state p, .error-state p, .empty-state p { font-size: 15px; }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spin { animation: spin 1s linear infinite; display: inline-block; }
+
+  .copy-toast {
+    position: fixed;
+    bottom: 32px; left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--md-on-surface); color: var(--md-surface);
+    padding: 12px 24px;
+    border-radius: var(--radius-lg);
+    font-size: 14px; font-weight: 500;
+    z-index: 9999;
+    transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1), opacity 0.2s;
+    opacity: 0; pointer-events: none;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .copy-toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+  .copy-toast .material-symbols-outlined { font-size: 18px; color: #A8C7FA; }
+
+  @media (max-width: 600px) {
+    .app-bar { padding: 0 16px; height: 56px; }
+    .app-bar-title { font-size: 18px; }
+    .app-bar-subtitle { display: none; }
+    .toolbar { padding: 12px 16px; gap: 8px; }
+    .search-field { max-width: 100%; order: 1; width: 100%; }
+    .toolbar-actions { order: 2; width: 100%; justify-content: space-between; }
+    .sort-bar { order: 3; }
+    .content { padding: 12px 16px; }
+    .server-grid { grid-template-columns: 1fr; gap: 10px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app-bar">
+  <span class="material-symbols-outlined app-bar-icon">storefront</span>
+  <span class="app-bar-title">Server Discovery</span>
+  <span class="app-bar-subtitle">Avia Client</span>
+</div>
+
+<div class="toolbar">
+  <div class="search-field">
+    <span class="material-symbols-outlined">search</span>
+    <input type="text" id="search-input" placeholder="Search servers, tags, descriptions…" />
+  </div>
+  <div class="toolbar-actions">
+    <span class="count-chip" id="result-count">Loading…</span>
+    <button class="icon-btn" onclick="refetch()" title="Refresh">
+      <span class="material-symbols-outlined" id="refresh-icon">refresh</span>
+    </button>
+  </div>
+  <div class="sort-bar">
+    <span class="sort-label">Order:</span>
+    <div class="sort-chips">
+      <button class="sort-chip active" id="sort-new" onclick="setSort('new')">
+        <span class="material-symbols-outlined">fiber_new</span>
+        New
+      </button>
+      <button class="sort-chip" id="sort-shuffle" onclick="setSort('shuffle')">
+        <span class="material-symbols-outlined">shuffle</span>
+        Shuffle
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="content" id="content">
+  <div class="loading-state">
+    <span class="material-symbols-outlined spin">progress_activity</span>
+    <p>Loading servers…</p>
+  </div>
+</div>
+
+<div class="copy-toast" id="toast">
+  <span class="material-symbols-outlined">check_circle</span>
+  <span id="toast-text">Link copied!</span>
+</div>
+
+<script>
+const DIRECTORY_META = {
+  title: "Avia Client Server Directory",
+  description: "A curated list of servers.",
+  maintainer: "AvaLilac",
+  version: "1.0.0"
+};
+
+const BACKEND_URL = "https://raw.githubusercontent.com/AvaLilac/AviaClient-Discovery/refs/heads/main/serverrepobackend.json";
+const API_BASE    = "https://api.stoat.chat";
+const INVITE_BASE = "https://stt.gg";
+
+let allServers  = [];
+let currentSort = 'new';
+let toastTimer  = null;
+
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  document.getElementById('toast-text').textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+function copyText(text) {
+  navigator.clipboard.writeText(text).then(() => showToast('Invite link copied!'));
+}
+
+function setSort(mode) {
+  currentSort = mode;
+  document.querySelectorAll('.sort-chip').forEach(c => c.classList.remove('active'));
+  document.getElementById('sort-' + mode)?.classList.add('active');
+  render();
+}
+
+function getSorted(pool) {
+  return currentSort === 'shuffle' ? [...pool].sort(() => Math.random() - 0.5) : pool;
+}
+
+async function fetchInvite(code) {
+  try {
+    const r = await fetch(`${API_BASE}/invites/${code}`);
+    if (!r.ok) return null;
+    const d = await r.json();
+    const srv = d.server || d;
+    return {
+      name:        srv.name        || null,
+      description: srv.description || null,
+    };
+  } catch (_) {
+    return null;
+  }
+}
+
+function render() {
+  const q = document.getElementById('search-input').value.toLowerCase();
+  const content = document.getElementById('content');
+
+  const pool = getSorted(allServers).filter(s => {
+    const hay = [s.name, s.fallbackName, s.description, s.fallbackDesc, ...(s.tags||[])].join(' ').toLowerCase();
+    return hay.includes(q);
+  });
+
+  document.getElementById('result-count').textContent =
+    pool.length + ' server' + (pool.length !== 1 ? 's' : '');
+
+  if (pool.length === 0) {
+    content.innerHTML = `<div class="empty-state">
+      <span class="material-symbols-outlined">search_off</span>
+      <p>No servers match your search.</p>
+    </div>`;
+    return;
+  }
+
+  const grid = document.createElement('div');
+  grid.className = 'server-grid';
+
+  pool.forEach(s => {
+    const name      = s.name || s.fallbackName || s.invite;
+    const desc      = s.description || s.fallbackDesc || '';
+    const inviteUrl = `${INVITE_BASE}/${s.invite}`;
+
+    const card = document.createElement('div');
+    card.className = 'server-card';
+
+    let statusHtml = '';
+    if (s.status === 'loading') {
+      statusHtml = `<div class="card-status">
+        <span class="material-symbols-outlined spin">progress_activity</span> Resolving…
+      </div>`;
+    } else if (s.status === 'error') {
+      statusHtml = `<div class="card-status">
+        <span class="material-symbols-outlined">warning</span> Invite may be invalid
+      </div>`;
+    }
+
+    const tagsHtml = (s.tags||[]).length
+      ? `<div class="card-tags">${s.tags.map(t => `<span class="tag">${esc(t)}</span>`).join('')}</div>`
+      : '';
+
+    card.innerHTML = `
+      <div class="card-body">
+        <div class="card-name" title="${esc(name)}">${esc(name)}</div>
+        ${statusHtml}
+        ${desc ? `<div class="card-desc">${esc(desc)}</div>` : ''}
+        ${tagsHtml}
+        <div class="card-actions">
+          <a class="btn-filled" href="${esc(inviteUrl)}" target="_blank" rel="noopener">
+            <span class="material-symbols-outlined">login</span>
+            Join Server
+          </a>
+          <button class="btn-tonal" onclick="copyText('${esc(inviteUrl)}')">
+            <span class="material-symbols-outlined">content_copy</span>
+            Copy
+          </button>
+        </div>
+      </div>
+    `;
+
+    grid.appendChild(card);
+  });
+
+  content.innerHTML = '';
+  content.appendChild(grid);
+}
+
+async function refetch() {
+  const icon = document.getElementById('refresh-icon');
+  icon.classList.add('spin');
+  document.getElementById('result-count').textContent = 'Loading…';
+  document.getElementById('content').innerHTML = `<div class="loading-state">
+    <span class="material-symbols-outlined spin">progress_activity</span>
+    <p>Loading servers…</p>
+  </div>`;
+
+  let backendList;
+  try {
+    const r = await fetch(BACKEND_URL);
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const data = await r.json();
+    backendList = data.servers || [];
+  } catch (e) {
+    document.getElementById('content').innerHTML = `<div class="error-state">
+      <span class="material-symbols-outlined">cloud_off</span>
+      <p>Couldn't load server list.<br>Check that <code>BACKEND_URL</code> is correct.</p>
+    </div>`;
+    document.getElementById('result-count').textContent = 'Error';
+    icon.classList.remove('spin');
+    return;
+  }
+
+  allServers = backendList.map(s => ({
+    ...s,
+    fallbackName: s.name,
+    fallbackDesc: s.description,
+    status: 'loading',
+  }));
+  render();
+
+  await Promise.allSettled(backendList.map(async (s, i) => {
+    const info = await fetchInvite(s.invite);
+    allServers[i] = {
+      ...allServers[i],
+      name:        info?.name        || s.name,
+      description: info?.description || s.description,
+      status:      info ? 'loaded' : 'error',
+    };
+    render();
+  }));
+
+  icon.classList.remove('spin');
+}
+
+document.getElementById('search-input').addEventListener('input', render);
+refetch();
+</script>
+</body>
+</html>
