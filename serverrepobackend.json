@@ -1,0 +1,16 @@
+{
+  "servers": [
+    {
+      "invite": "ExampleInvite1",
+      "name": "Testy name",
+      "description": "Love tests",
+      "tags": ["gaming", "fun"]
+    },
+    {
+      "invite": "ExampleInvite2",
+      "name": "Test name",
+      "description": "I Fucking hate tests",
+      "tags": ["dev", "programming", "opensource"]
+    }
+  ]
+}
