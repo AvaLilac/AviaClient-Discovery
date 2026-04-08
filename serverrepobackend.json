@@ -1,10 +1,10 @@
 {
   "servers": [
     {
-      "invite": "ExampleInvite1",
-      "name": "Testy name",
-      "description": "Love tests",
-      "tags": ["gaming", "fun"]
+      "invite": "GvBhcejB",
+      "name": "Avia Client",
+      "description": "Welcome to AviaClient. The One Modded Client for stoat you will need. We feature Plugins/Quickcss/Themes to stoat. If you like vencord on discord but miss it on stoat. This Client is the Client you need to be using",
+      "tags": ["clientmod", "aviaclient", "mod", "client", "plugins", "themes", "quickcss"]
     },
     {
       "invite": "ExampleInvite2",
