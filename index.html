@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Avia Client Server Discovery</title>
+<title>Server Discovery</title>
 <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600&family=Google+Sans+Display:wght@400;500&display=swap" rel="stylesheet" />
 <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet" />
 <style>
@@ -208,15 +208,75 @@
     border-color: var(--md-outline);
   }
 
-  .card-body {
-    padding: 16px;
-    display: flex; flex-direction: column; gap: 10px; flex: 1;
+  .card-banner {
+    width: 100%;
+    aspect-ratio: 16 / 5;
+    object-fit: cover;
+    display: block;
+    background: var(--md-surface-variant);
   }
+  .card-banner-placeholder {
+    width: 100%;
+    aspect-ratio: 16 / 5;
+    background: linear-gradient(135deg, var(--md-primary-container), var(--md-secondary-container));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .card-banner-placeholder .material-symbols-outlined {
+    font-size: 32px;
+    color: var(--md-on-primary-container);
+    opacity: 0.4;
+  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px 0;
+  }
+  .card-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    background: var(--md-surface-variant);
+    border: 2px solid var(--md-surface-container);
+  }
+  .card-icon-placeholder {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--md-primary-container);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border: 2px solid var(--md-surface-container);
+  }
+  .card-icon-placeholder .material-symbols-outlined {
+    font-size: 18px;
+    color: var(--md-on-primary-container);
+  }
+  .card-header-text { flex: 1; min-width: 0; }
   .card-name {
     font-size: 15px; font-weight: 600;
     color: var(--md-on-surface);
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
+  .card-members {
+    font-size: 11px; color: var(--md-on-surface-variant);
+    display: flex; align-items: center; gap: 3px;
+    margin-top: 1px;
+  }
+  .card-members .material-symbols-outlined { font-size: 12px; }
+
+  .card-body {
+    padding: 10px 16px 16px;
+    display: flex; flex-direction: column; gap: 10px; flex: 1;
+  }
+
   .card-status {
     font-size: 11px; color: var(--md-on-surface-variant);
     display: flex; align-items: center; gap: 4px;
@@ -316,7 +376,7 @@
 <div class="app-bar">
   <span class="material-symbols-outlined app-bar-icon">storefront</span>
   <span class="app-bar-title">Server Discovery</span>
-  <span class="app-bar-subtitle">Avia Client</span>
+  <span class="app-bar-subtitle">AvaLilac's Discovery</span>
 </div>
 
 <div class="toolbar">
@@ -358,15 +418,9 @@
 </div>
 
 <script>
-const DIRECTORY_META = {
-  title: "Avia Client Server Directory",
-  description: "A curated list of servers.",
-  maintainer: "AvaLilac",
-  version: "1.0.0"
-};
-
 const BACKEND_URL = "https://raw.githubusercontent.com/AvaLilac/AviaClient-Discovery/refs/heads/main/serverrepobackend.json";
 const API_BASE    = "https://api.stoat.chat";
+const CDN_BASE    = "https://cdn.stoatusercontent.com";
 const INVITE_BASE = "https://stt.gg";
 
 let allServers  = [];
@@ -375,6 +429,13 @@ let toastTimer  = null;
 
 function esc(s) {
   return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function parseTags(text) {
+  if (!text) return { tags: [], clean: '' };
+  const tags = [];
+  const clean = text.replace(/#(\w+)/g, (_, t) => { tags.push(t); return ''; }).trim();
+  return { tags, clean };
 }
 
 function showToast(msg) {
@@ -405,14 +466,78 @@ async function fetchInvite(code) {
     const r = await fetch(`${API_BASE}/invites/${code}`);
     if (!r.ok) return null;
     const d = await r.json();
-    const srv = d.server || d;
+    const bannerId = d.server_banner?._id || null;
+    const iconId   = d.server_icon?._id   || null;
     return {
-      name:        srv.name        || null,
-      description: srv.description || null,
+      name:        d.server_name  || null,
+      memberCount: d.member_count || null,
+      bannerUrl:   bannerId ? `${CDN_BASE}/banners/${bannerId}?width=640` : null,
+      iconUrl:     iconId   ? `${CDN_BASE}/icons/${iconId}?width=128`    : null,
     };
   } catch (_) {
     return null;
   }
+}
+
+function renderCard(s) {
+  const name      = s.name || s.fallbackName || s.invite;
+  const desc      = s.description || '';
+  const tags      = s.tags || [];
+  const inviteUrl = `${INVITE_BASE}/${s.invite}`;
+
+  const card = document.createElement('div');
+  card.className = 'server-card';
+  card.id = 'card-' + s.invite;
+
+  const bannerHtml = s.bannerUrl
+    ? `<img class="card-banner" src="${esc(s.bannerUrl)}" alt="" loading="lazy" draggable="false">`
+    : `<div class="card-banner-placeholder"><span class="material-symbols-outlined">explore</span></div>`;
+
+  const iconHtml = s.iconUrl
+    ? `<img class="card-icon" src="${esc(s.iconUrl)}" alt="" loading="lazy" draggable="false">`
+    : `<div class="card-icon-placeholder"><span class="material-symbols-outlined">dns</span></div>`;
+
+  const membersHtml = s.memberCount
+    ? `<div class="card-members"><span class="material-symbols-outlined">group</span>${Number(s.memberCount).toLocaleString()} members</div>`
+    : '';
+
+  const statusHtml = s.status === 'loading'
+    ? `<div class="card-status"><span class="material-symbols-outlined spin">progress_activity</span> Resolving…</div>`
+    : s.status === 'error'
+    ? `<div class="card-status"><span class="material-symbols-outlined">warning</span> Invite may be invalid</div>`
+    : '';
+
+  const tagsHtml = tags.length
+    ? `<div class="card-tags">${tags.map(t => `<span class="tag">${esc(t)}</span>`).join('')}</div>`
+    : '';
+
+  card.innerHTML = `
+    ${bannerHtml}
+    <div class="card-header">
+      ${iconHtml}
+      <div class="card-header-text">
+        <div class="card-name" title="${esc(name)}">${esc(name)}</div>
+        ${membersHtml}
+      </div>
+    </div>
+    <div class="card-body">
+      ${statusHtml}
+      ${desc ? `<div class="card-desc">${esc(desc)}</div>` : ''}
+      ${tagsHtml}
+      <div class="card-actions">
+        <a class="btn-filled" href="${esc(inviteUrl)}" target="_blank" rel="noopener">
+          <span class="material-symbols-outlined">login</span>
+          Join Server
+        </a>
+        <button class="btn-tonal" onclick="copyText('${esc(inviteUrl)}')">
+          <span class="material-symbols-outlined">content_copy</span>
+          Copy
+        </button>
+      </div>
+    </div>
+  `;
+
+  return card;
 }
 
 function render() {
@@ -420,7 +545,7 @@ function render() {
   const content = document.getElementById('content');
 
   const pool = getSorted(allServers).filter(s => {
-    const hay = [s.name, s.fallbackName, s.description, s.fallbackDesc, ...(s.tags||[])].join(' ').toLowerCase();
+    const hay = [s.name, s.fallbackName, s.description, ...(s.tags||[])].join(' ').toLowerCase();
     return hay.includes(q);
   });
 
@@ -437,51 +562,7 @@ function render() {
 
   const grid = document.createElement('div');
   grid.className = 'server-grid';
-
-  pool.forEach(s => {
-    const name      = s.name || s.fallbackName || s.invite;
-    const desc      = s.description || s.fallbackDesc || '';
-    const inviteUrl = `${INVITE_BASE}/${s.invite}`;
-
-    const card = document.createElement('div');
-    card.className = 'server-card';
-
-    let statusHtml = '';
-    if (s.status === 'loading') {
-      statusHtml = `<div class="card-status">
-        <span class="material-symbols-outlined spin">progress_activity</span> Resolving…
-      </div>`;
-    } else if (s.status === 'error') {
-      statusHtml = `<div class="card-status">
-        <span class="material-symbols-outlined">warning</span> Invite may be invalid
-      </div>`;
-    }
-
-    const tagsHtml = (s.tags||[]).length
-      ? `<div class="card-tags">${s.tags.map(t => `<span class="tag">${esc(t)}</span>`).join('')}</div>`
-      : '';
-
-    card.innerHTML = `
-      <div class="card-body">
-        <div class="card-name" title="${esc(name)}">${esc(name)}</div>
-        ${statusHtml}
-        ${desc ? `<div class="card-desc">${esc(desc)}</div>` : ''}
-        ${tagsHtml}
-        <div class="card-actions">
-          <a class="btn-filled" href="${esc(inviteUrl)}" target="_blank" rel="noopener">
-            <span class="material-symbols-outlined">login</span>
-            Join Server
-          </a>
-          <button class="btn-tonal" onclick="copyText('${esc(inviteUrl)}')">
-            <span class="material-symbols-outlined">content_copy</span>
-            Copy
-          </button>
-        </div>
-      </div>
-    `;
-
-    grid.appendChild(card);
-  });
+  pool.forEach(s => grid.appendChild(renderCard(s)));
 
   content.innerHTML = '';
   content.appendChild(grid);
@@ -512,23 +593,37 @@ async function refetch() {
     return;
   }
 
-  allServers = backendList.map(s => ({
-    ...s,
-    fallbackName: s.name,
-    fallbackDesc: s.description,
-    status: 'loading',
-  }));
+  allServers = backendList.map(s => {
+    const { tags, clean } = parseTags(s.description || '');
+    return {
+      invite:       s.invite,
+      fallbackName: s.name || null,
+      description:  clean || null,
+      tags,
+      name:         null,
+      memberCount:  null,
+      bannerUrl:    null,
+      iconUrl:      null,
+      status:       'loading',
+    };
+  });
   render();
 
   await Promise.allSettled(backendList.map(async (s, i) => {
-    const info = await fetchInvite(s.invite);
+    const code = s.invite.replace(/.*\//, '');
+    const info = await fetchInvite(code);
+
     allServers[i] = {
       ...allServers[i],
-      name:        info?.name        || s.name,
-      description: info?.description || s.description,
+      name:        info?.name        || s.name || null,
+      memberCount: info?.memberCount || null,
+      bannerUrl:   info?.bannerUrl   || null,
+      iconUrl:     info?.iconUrl     || null,
       status:      info ? 'loaded' : 'error',
     };
-    render();
+
+    const existing = document.getElementById('card-' + s.invite);
+    if (existing) existing.replaceWith(renderCard(allServers[i]));
   }));
 
   icon.classList.remove('spin');
