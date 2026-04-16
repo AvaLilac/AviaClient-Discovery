@@ -2,26 +2,11 @@
   "servers": [
     {
       "invite": "hdXssvp4",
-      "name": "Avia Client",
-      "description": "Welcome to AviaClient. The One Modded Client for stoat you will need. We feature Plugins/Quickcss/Themes to stoat. If you like vencord on discord but miss it on stoat. This Client is the Client you need to be using",
-      "tags": [
-        "clientmod",
-        "aviaclient",
-        "mod",
-        "client",
-        "plugins",
-        "themes",
-        "quickcss"
-      ]
+      "name": "Avia Client"
     },
     {
       "invite": "0MPSAx8x",
-      "name": "Avia Client Mobile",
-      "description": "Avia Client optimised for mobile by 0simp",
-      "tags": [
-        "mobile",
-        "web"
-      ]
+      "name": "Avia Client Mobile"
     }
   ]
 }
